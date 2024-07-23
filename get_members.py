@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Clarence Wret, July 24 2024
+
 import requests
 from bs4 import BeautifulSoup
 import sys
