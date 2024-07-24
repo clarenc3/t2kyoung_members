@@ -11,8 +11,8 @@ from datetime import datetime
 # Read the xml
 import xml.etree.ElementTree as ET
 
-t2k_user="your_user"
-t2k_password="your_password"
+t2k_user="user"
+t2k_password="pass"
 
 # Now read the xml data
 tree = ET.parse('membertable.xml')
@@ -65,10 +65,12 @@ for name in t2k_members:
 
     # GET THE SOUP
     soup = BeautifulSoup(page.text, features="html.parser")
-    #print(soup)
 
     # Look for "Position"
     pos = str(soup.find_all("p")[1].text.strip())
+    # Country
+    country = pos.split('(')[-1].split(')')[0]
+
     pos_pretty=""
     # Include only students and postdocs
     if "Grad student (MSc)" in pos:
@@ -78,16 +80,17 @@ for name in t2k_members:
     elif "Postdoc" in pos:
         pos_pretty = "Postdoc"
     else:
-        continue
+        pos_pretty = "Permanent"
 
     member_since = str(soup.find_all("p")[2].text.strip())
     member_since = member_since.replace('T2K member since: ', '')
     member_since_datetime = datetime.strptime(member_since, '%Y/%m')
 
-    person=[name[1], name[2], name[0], name[3], name[4], pos_pretty, member_since_datetime]
+    # First name, last name, username, email, institute, country, position, member since
+    person=[name[1], name[2], name[0], name[3], name[4], country, pos_pretty, member_since_datetime]
     t2k_students.append(person)
 
-df = pd.DataFrame(t2k_students, columns=["First name", "Last name", "Username", "Email", "Institute", "Position", "Member since"])
+df = pd.DataFrame(t2k_students, columns=["First name", "Last name", "Username", "Email", "Institute", "Country", "Position", "Member since"])
 print(df)
 
-df.to_csv('t2kyoung.csv', index=False)
+df.to_csv('t2kyoung_wcountry_everyone.csv', index=False)
