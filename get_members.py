@@ -8,11 +8,12 @@ import sys
 import warnings
 import pandas as pd
 from datetime import datetime
+import datetime as dt
 # Read the xml
 import xml.etree.ElementTree as ET
 
 t2k_user="user"
-t2k_password="pass"
+t2k_password="password"
 
 # Now read the xml data
 tree = ET.parse('membertable.xml')
@@ -66,6 +67,13 @@ for name in t2k_members:
     # GET THE SOUP
     soup = BeautifulSoup(page.text, features="html.parser")
 
+    # If there is a contribution it is listed as class "vertical listing"
+    if soup.find("table", {"class": "vertical listing"}) != None:
+        contrib = soup.find("table", {"class": "vertical listing"}).find_all("th")[0].text
+    else:
+        contrib = 'Jan 1, 0001'
+
+    contrib_datetime = datetime.strptime(contrib, "%b %d, %Y")
     # Look for "Position"
     pos = str(soup.find_all("p")[1].text.strip())
     # Country
@@ -86,11 +94,11 @@ for name in t2k_members:
     member_since = member_since.replace('T2K member since: ', '')
     member_since_datetime = datetime.strptime(member_since, '%Y/%m')
 
-    # First name, last name, username, email, institute, country, position, member since
-    person=[name[1], name[2], name[0], name[3], name[4], country, pos_pretty, member_since_datetime]
+    # First name, last name, username, email, institute, country, position, member since, last contribution
+    person=[name[1], name[2], name[0], name[3], name[4], country, pos_pretty, member_since_datetime.strftime("%Y-%m-%d"), contrib_datetime.strftime("%Y-%m-%d")]
     t2k_students.append(person)
 
-df = pd.DataFrame(t2k_students, columns=["First name", "Last name", "Username", "Email", "Institute", "Country", "Position", "Member since"])
+df = pd.DataFrame(t2k_students, columns=["First name", "Last name", "Username", "Email", "Institute", "Country", "Position", "Member since", "Last contribution"])
 print(df)
 
-df.to_csv('t2kyoung_wcountry_everyone.csv', index=False)
+df.to_csv('t2kyoung_wcountry_wcontrib_everyone.csv', index=False)
